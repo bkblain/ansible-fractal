@@ -1,0 +1,64 @@
+---
+
+- name: Update and Upgrade Currently Installed Packages
+  ansible.builtin.apt:
+    upgrade: yes
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+# Required for Ansible STIG
+- name: Install Network Manager
+  ansible.builtin.package:
+    name: network-manager
+    state: present
+
+# Required to unzip the SSG archive
+- name: Install Unzip  
+  ansible.builtin.package:
+    name: unzip
+    state: present
+
+- name: Ensure the standard directory for SCAP Security Guides (SSG) is created
+  ansible.builtin.file:
+   path: "{{ ssg_directory }}"
+   recurse: yes
+   state: directory
+
+- name: Determine the latest SCAP Security Guide (SSG) release
+  ansible.builtin.uri:
+    url: "{{ ssg_repository }}/latest"
+    body_format: json
+    headers:
+        Accept: application/json
+  register: response
+
+- name: Create SCAP Security Guide (SSG) variables
+  ansible.builtin.set_fact:
+    ssg_version: "{{ response.json.tag_name }}"
+    ssg_archive_file: "scap-security-guide-{{ response.json.tag_name[1:] }}"
+
+- name: Download the latest SCAP Security Guide (SSG)
+  ansible.builtin.get_url:
+    url: "{{ ssg_repository }}/download/{{ ssg_version }}/{{ ssg_archive_file }}.zip"
+    dest: "/tmp/{{ ssg_archive_file }}.zip"
+
+- name: Extract the SCAP Security Guide (SSG) for this OS distribution
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ ssg_archive_file }}.zip"
+    dest: /tmp
+    include:
+    - "{{ ssg_archive_file }}/{{ ssg_file }}"
+    - "{{ ssg_archive_file }}/ansible/{{ oscap_ansible_file }}"
+    remote_src: yes
+
+- name: Copy SCAP Security Guide to standard directory location
+  ansible.builtin.copy:
+    src: "/tmp/{{ ssg_archive_file }}/{{ ssg_file }}"
+    dest: "{{ ssg_directory }}"
+    remote_src: yes
+
+- name: Copy the Ansible file back to the host
+  ansible.builtin.fetch:
+    src: "/tmp/{{ ssg_archive_file }}/ansible/{{ oscap_ansible_file }}"
+    dest: "/tmp/"
+    flat: yes

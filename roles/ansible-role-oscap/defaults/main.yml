@@ -1,0 +1,10 @@
+---
+
+base_version: "{{ ansible_distribution | lower }}{{ ansible_distribution_version | replace('.','') }}"
+
+oscap_file_arf: "arf.xml"
+oscap_file_report: "report.html"
+
+ssg_directory: "/usr/share/xml/scap/ssg/content"
+ssg_file: "ssg-{{ base_version }}-ds.xml"
+ssg_profile: "xccdf_org.ssgproject.content_profile_cis_level1_server"

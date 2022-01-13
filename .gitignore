@@ -1,0 +1,17 @@
+
+# Ansible
+# -----------------------------------------------------------------------------
+*.retry
+
+roles/*
+!roles/requirements.yml
+!roles/ansible-role-*
+
+
+# Vagrant
+# -----------------------------------------------------------------------------
+# General
+.vagrant/
+
+# Log files (if you are creating logs in debug mode, uncomment this)
+# *.log

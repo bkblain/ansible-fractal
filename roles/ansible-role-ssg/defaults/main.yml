@@ -1,0 +1,9 @@
+---
+
+base_version: "{{ ansible_distribution | lower }}{{ ansible_distribution_version | replace('.','') }}"
+
+oscap_ansible_file: "{{ base_version }}-playbook-cis_level1_server.yml"
+
+ssg_directory: "/usr/share/xml/scap/ssg/content"
+ssg_file: "ssg-{{ base_version }}-ds.xml"
+ssg_repository: "https://github.com/ComplianceAsCode/content/releases"

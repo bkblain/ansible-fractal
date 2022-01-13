@@ -1,0 +1,6 @@
+---
+
+- name: Run the OpenSCAP Security Scan
+  hosts: all
+  roles:
+    - "ansible-role-oscap"

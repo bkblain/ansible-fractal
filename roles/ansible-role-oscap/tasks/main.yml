@@ -1,0 +1,37 @@
+---
+
+- name: Retrieve OS Specific Variables
+  ansible.builtin.include_vars: "{{ ansible_distribution | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yml"
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Update and Upgrade Currently Installed Packages
+  ansible.builtin.apt:
+    upgrade: yes
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Install OpenSCAP 
+  ansible.builtin.package:
+    name: "{{ oscap_package }}"
+    state: present
+
+- name: Ensure the SSG directory exists
+  ansible.builtin.file:
+    path: "{{ ssg_directory }}"
+    state: directory
+
+- name: Copy Ubuntu SSG from the role/files directory
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/{{ ssg_file }}"
+    dest: "{{ ssg_directory }}/{{ ssg_file }}"
+
+- name: Run the OSCAP scan
+  ansible.builtin.command: |
+    oscap xccdf eval \
+    --oval-results \
+    --profile {{ ssg_profile }} \
+    --results-arf {{ oscap_file_arf }} \
+    --report {{ oscap_file_report }} \
+    {{ ssg_directory }}/{{ ssg_file }}
+  ignore_errors: yes
+  
